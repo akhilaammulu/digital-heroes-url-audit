@@ -23,6 +23,7 @@ import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -34,10 +35,12 @@ public class AuditServiceImpl implements AuditService {
 
     private final WebClient webClient;
     private final UrlAuditProperties properties;
+    private final Semaphore semaphore;
 
     public AuditServiceImpl(WebClient auditWebClient, UrlAuditProperties properties) {
         this.webClient = auditWebClient;
         this.properties = properties;
+        this.semaphore = new Semaphore(properties.concurrency().maxConcurrentAudits());
     }
 
     @Override
@@ -48,13 +51,27 @@ public class AuditServiceImpl implements AuditService {
     public AuditResponse audit(AuditRequest request) {
         String requestId = RequestIdUtils.current();
         long startNanos = System.nanoTime();
-        log.atInfo()
-                .addKeyValue("event", "audit_started")
-                .addKeyValue("requestId", requestId)
-                .addKeyValue("url", request.url())
-                .log("audit_started");
+
+        if (!semaphore.tryAcquire()) {
+            log.atWarn()
+                    .addKeyValue("event", "concurrency_limit_exceeded")
+                    .addKeyValue("requestId", requestId)
+                    .addKeyValue("url", request.url())
+                    .log("concurrency_limit_exceeded");
+            throw new UrlAuditException(
+                    AuditErrorCode.CONCURRENCY_LIMIT_EXCEEDED,
+                    "Too many concurrent audits. Please try again later.",
+                    HttpStatus.SERVICE_UNAVAILABLE
+            );
+        }
 
         try {
+            log.atInfo()
+                    .addKeyValue("event", "audit_started")
+                    .addKeyValue("requestId", requestId)
+                    .addKeyValue("url", request.url())
+                    .log("audit_started");
+
             URI targetUri = toHttpUri(request.url());
             ResponseEntity<String> response = fetch(targetUri);
             long responseTimeMs = elapsedMs(startNanos);
@@ -91,6 +108,8 @@ public class AuditServiceImpl implements AuditService {
                     exception);
             logFailure(request.url(), requestId, mappedException, startNanos);
             throw mappedException;
+        } finally {
+            semaphore.release();
         }
     }
 

@@ -9,13 +9,54 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record UrlAuditProperties(
         Duration requestTimeout,
         Duration cacheTtl,
-        long cacheMaximumSize) {
+        long cacheMaximumSize,
+        RateLimit rateLimit,
+        Concurrency concurrency) {
+
+    public record RateLimit(
+            int capacity,
+            int refillTokens,
+            Duration duration) {
+        public RateLimit {
+            if (capacity <= 0) {
+                throw new IllegalArgumentException("rateLimit.capacity must be greater than zero");
+            }
+            if (refillTokens <= 0) {
+                throw new IllegalArgumentException("rateLimit.refillTokens must be greater than zero");
+            }
+            Objects.requireNonNull(duration, "rateLimit.duration must be configured");
+            if (duration.isZero() || duration.isNegative()) {
+                throw new IllegalArgumentException("rateLimit.duration must be greater than zero");
+            }
+        }
+    }
+
+    public record Concurrency(
+            int maxConcurrentAudits) {
+        public Concurrency {
+            if (maxConcurrentAudits <= 0) {
+                throw new IllegalArgumentException("concurrency.maxConcurrentAudits must be greater than zero");
+            }
+        }
+    }
+
+    public UrlAuditProperties(Duration requestTimeout, Duration cacheTtl, long cacheMaximumSize) {
+        this(requestTimeout, cacheTtl, cacheMaximumSize,
+                new RateLimit(100, 100, Duration.ofMinutes(1)),
+                new Concurrency(10));
+    }
 
     public UrlAuditProperties {
         validatePositive("requestTimeout", requestTimeout);
         validatePositive("cacheTtl", cacheTtl);
         if (cacheMaximumSize <= 0) {
             throw new IllegalArgumentException("cacheMaximumSize must be greater than zero");
+        }
+        if (rateLimit == null) {
+            rateLimit = new RateLimit(100, 100, Duration.ofMinutes(1));
+        }
+        if (concurrency == null) {
+            concurrency = new Concurrency(10);
         }
     }
 
