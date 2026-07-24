@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: digital-heroes-url-audit
+
+server:
+  port: ${SERVER_PORT:8080}
+
+url-audit:
+  request-timeout: ${URL_AUDIT_REQUEST_TIMEOUT:10s}
+  cache-ttl: ${URL_AUDIT_CACHE_TTL:5m}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.digitalheroes.urlaudit: ${LOG_LEVEL_APPLICATION:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%X{requestId:-no-request-id}] %logger{36} - %msg%n"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
