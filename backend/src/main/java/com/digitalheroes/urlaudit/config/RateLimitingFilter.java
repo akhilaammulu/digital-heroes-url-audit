@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Order(Ordered.HIGHEST_PRECEDENCE + 2)
 @Slf4j
 public class RateLimitingFilter extends OncePerRequestFilter {
 
