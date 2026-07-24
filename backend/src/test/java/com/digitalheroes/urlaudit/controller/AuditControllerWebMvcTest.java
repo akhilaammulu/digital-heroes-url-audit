@@ -5,6 +5,7 @@ import com.digitalheroes.urlaudit.config.UrlAuditProperties;
 import com.digitalheroes.urlaudit.dto.AuditResponse;
 import com.digitalheroes.urlaudit.exception.GlobalExceptionHandler;
 import com.digitalheroes.urlaudit.service.AuditService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +38,14 @@ class AuditControllerWebMvcTest {
 
     @MockBean
     private UrlAuditProperties urlAuditProperties;
+
+    @BeforeEach
+    void setUp() {
+        when(urlAuditProperties.rateLimit())
+                .thenReturn(new UrlAuditProperties.RateLimit(100, 100, Duration.ofMinutes(1)));
+        when(urlAuditProperties.concurrency())
+                .thenReturn(new UrlAuditProperties.Concurrency(10));
+    }
 
     @Test
     void includesRequestIdInSuccessfulResponse() throws Exception {
