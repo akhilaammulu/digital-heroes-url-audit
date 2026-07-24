@@ -9,6 +9,12 @@ url-audit:
   request-timeout: ${URL_AUDIT_REQUEST_TIMEOUT:10s}
   cache-ttl: ${URL_AUDIT_CACHE_TTL:5m}
   cache-maximum-size: ${URL_AUDIT_CACHE_MAX_SIZE:1000}
+  rate-limit:
+    capacity: ${URL_AUDIT_RATE_LIMIT_CAPACITY:100}
+    refill-tokens: ${URL_AUDIT_RATE_LIMIT_REFILL_TOKENS:100}
+    duration: ${URL_AUDIT_RATE_LIMIT_DURATION:1m}
+  concurrency:
+    max-concurrent-audits: ${URL_AUDIT_MAX_CONCURRENT_AUDITS:10}
 
 management:
   endpoints:

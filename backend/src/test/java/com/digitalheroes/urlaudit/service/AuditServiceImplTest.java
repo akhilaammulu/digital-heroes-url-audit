@@ -117,6 +117,37 @@ class AuditServiceImplTest {
         assertAuditFailure(thrown, "CONNECTION_FAILURE", HttpStatus.BAD_GATEWAY);
     }
 
+    @Test
+    void rejectsRequestsExceedingConcurrencyLimit() throws Exception {
+        UrlAuditProperties properties = new UrlAuditProperties(
+                Duration.ofMillis(100),
+                Duration.ofMinutes(5),
+                100,
+                new UrlAuditProperties.RateLimit(100, 100, Duration.ofMinutes(1)),
+                new UrlAuditProperties.Concurrency(1)
+        );
+        AuditServiceImpl singleAuditService = new AuditServiceImpl(
+                WebClient.builder().exchangeFunction(exchangeFunction).build(),
+                properties
+        );
+
+        when(exchangeFunction.exchange(any(ClientRequest.class)))
+                .thenReturn(Mono.never());
+
+        Thread thread = new Thread(() -> {
+            try {
+                singleAuditService.audit(new AuditRequest("https://example.com"));
+            } catch (Exception ignored) {}
+        });
+        thread.start();
+
+        Thread.sleep(50);
+
+        Throwable thrown = catchThrowable(() -> singleAuditService.audit(new AuditRequest("https://example.com")));
+
+        assertAuditFailure(thrown, "CONCURRENCY_LIMIT_EXCEEDED", HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     private ClientResponse response(HttpStatus status, String body) {
         return ClientResponse.create(status)
                 .body(body)
