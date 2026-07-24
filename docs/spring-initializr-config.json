@@ -1,0 +1,35 @@
+{
+  "type": "maven-project",
+  "language": "java",
+  "bootVersion": "3.5.4",
+  "baseDir": "backend",
+  "groupId": "com.digitalheroes",
+  "artifactId": "url-audit",
+  "name": "digital-heroes-url-audit-backend",
+  "description": "Backend API for the Digital Heroes URL Audit application",
+  "packageName": "com.digitalheroes.urlaudit",
+  "packaging": "jar",
+  "javaVersion": "21",
+  "dependencies": [
+    {
+      "id": "web",
+      "name": "Spring Web"
+    },
+    {
+      "id": "validation",
+      "name": "Validation"
+    },
+    {
+      "id": "actuator",
+      "name": "Spring Boot Actuator"
+    },
+    {
+      "id": "lombok",
+      "name": "Lombok"
+    },
+    {
+      "id": "test",
+      "name": "Spring Boot Test"
+    }
+  ]
+}
