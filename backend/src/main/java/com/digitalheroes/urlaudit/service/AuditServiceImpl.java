@@ -7,6 +7,7 @@ import com.digitalheroes.urlaudit.exception.AuditErrorCode;
 import com.digitalheroes.urlaudit.exception.UrlAuditException;
 import com.digitalheroes.urlaudit.util.RequestIdUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,10 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
+    @Cacheable(
+            cacheNames = "auditResponses",
+            key = "#request.url()",
+            unless = "#result == null || #result.httpStatus() < 200 || #result.httpStatus() >= 300")
     public AuditResponse audit(AuditRequest request) {
         String requestId = RequestIdUtils.current();
         long startNanos = System.nanoTime();

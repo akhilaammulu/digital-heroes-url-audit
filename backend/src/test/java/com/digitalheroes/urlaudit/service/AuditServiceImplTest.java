@@ -46,7 +46,8 @@ class AuditServiceImplTest {
                 .build();
         UrlAuditProperties properties = new UrlAuditProperties(
                 Duration.ofMillis(100),
-                Duration.ofMinutes(5));
+                Duration.ofMinutes(5),
+                100);
         auditService = new AuditServiceImpl(webClient, properties);
     }
 
