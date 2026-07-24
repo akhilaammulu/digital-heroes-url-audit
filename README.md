@@ -1,5 +1,7 @@
 # Digital Heroes URL Audit
 
+[![CI Pipeline](https://github.com/akhilaammulu/digital-heroes-url-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/akhilaammulu/digital-heroes-url-audit/actions/workflows/ci.yml)
+
 Production-oriented full-stack application for auditing URLs. This repository is intentionally being built milestone by milestone for the SDE assignment.
 
 ## Milestone 3: Core URL Audit API

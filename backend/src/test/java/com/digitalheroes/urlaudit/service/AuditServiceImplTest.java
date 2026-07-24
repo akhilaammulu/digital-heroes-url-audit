@@ -47,7 +47,9 @@ class AuditServiceImplTest {
         UrlAuditProperties properties = new UrlAuditProperties(
                 Duration.ofMillis(100),
                 Duration.ofMinutes(5),
-                100);
+                100,
+                new UrlAuditProperties.RateLimit(100, 100, Duration.ofMinutes(1)),
+                new UrlAuditProperties.Concurrency(10));
         auditService = new AuditServiceImpl(webClient, properties);
     }
 

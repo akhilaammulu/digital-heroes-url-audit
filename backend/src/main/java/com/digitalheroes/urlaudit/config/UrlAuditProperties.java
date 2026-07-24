@@ -40,11 +40,6 @@ public record UrlAuditProperties(
         }
     }
 
-    public UrlAuditProperties(Duration requestTimeout, Duration cacheTtl, long cacheMaximumSize) {
-        this(requestTimeout, cacheTtl, cacheMaximumSize,
-                new RateLimit(100, 100, Duration.ofMinutes(1)),
-                new Concurrency(10));
-    }
 
     public UrlAuditProperties {
         validatePositive("requestTimeout", requestTimeout);
