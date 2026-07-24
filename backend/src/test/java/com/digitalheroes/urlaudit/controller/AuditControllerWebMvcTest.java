@@ -1,6 +1,7 @@
 package com.digitalheroes.urlaudit.controller;
 
 import com.digitalheroes.urlaudit.config.RequestIdFilter;
+import com.digitalheroes.urlaudit.config.UrlAuditProperties;
 import com.digitalheroes.urlaudit.dto.AuditResponse;
 import com.digitalheroes.urlaudit.exception.GlobalExceptionHandler;
 import com.digitalheroes.urlaudit.service.AuditService;
@@ -32,6 +33,9 @@ class AuditControllerWebMvcTest {
 
     @MockBean
     private AuditService auditService;
+
+    @MockBean
+    private UrlAuditProperties urlAuditProperties;
 
     @Test
     void includesRequestIdInSuccessfulResponse() throws Exception {
