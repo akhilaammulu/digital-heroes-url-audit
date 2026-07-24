@@ -97,7 +97,17 @@ OpenAPI documentation is provided through Springdoc OpenAPI and Swagger UI:
 - Correlation IDs let a client trace one request across the API response, application logs, and downstream URL-fetch activity without exposing internal exception details in the response.
 - Actuator readiness and liveness probes are available at `/actuator/health/readiness` and `/actuator/health/liveness`.
 
-Caching, rate limiting, retries, circuit breakers, and queues remain intentionally deferred.
+Rate limiting, retries, circuit breakers, and queues remain intentionally deferred.
+
+## Production caching
+
+Successful `2xx` audit responses are cached in a bounded local Caffeine cache using the URL as the key. Exceptions, timeouts, invalid URLs, and non-2xx external responses are never cached.
+
+- TTL: `URL_AUDIT_CACHE_TTL`, default `5m`
+- Maximum entries: `URL_AUDIT_CACHE_MAX_SIZE`, default `1000`
+- Cache logs: structured `cache_hit` and `cache_miss` events include the request ID and URL key.
+
+Caffeine was selected because it is an efficient in-process cache with bounded maximum size and low-overhead expiration, which fits the current single-instance service without introducing Redis or distributed-cache infrastructure. Entries use expire-after-write invalidation; a URL is re-audited after its TTL expires. The maximum entry count bounds heap usage, but operators should size it according to expected URL cardinality and the memory footprint of cached response objects.
 
 ## Development commands
 

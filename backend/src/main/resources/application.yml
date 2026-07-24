@@ -8,6 +8,7 @@ server:
 url-audit:
   request-timeout: ${URL_AUDIT_REQUEST_TIMEOUT:10s}
   cache-ttl: ${URL_AUDIT_CACHE_TTL:5m}
+  cache-maximum-size: ${URL_AUDIT_CACHE_MAX_SIZE:1000}
 
 management:
   endpoints:
