@@ -88,3 +88,28 @@ To enhance production monitoring in the future, the following strategies are rec
 * **Prometheus Metrics**: Integrate Micrometer to export metrics for Prometheus scraping (e.g., active request counters, audit durations, cache hit ratio, and rate limiting drops).
 * **JSON Log Formatting**: Swap standard console log strings with a JSON formatter (like Logstash Logback Encoder) to allow log ingestion engines to natively parse MDC keys.
 * **Distributed Tracing**: Integrate OpenTelemetry to automatically trace the audit request from the browser client, through the backend service, all the way to target site responses.
+
+---
+
+## 6. Alerting & Rollback Strategy
+
+### 6.1 Metrics to Monitor & Alert On
+To maintain a high-quality SLA, we configure alerts on the following key metrics:
+1. **HTTP 5xx Error Rate**: Trigger P1 alert if > 1% of total requests return 5xx (500, 502, 503, 504) over a rolling 5-minute window.
+2. **Concurrency Limit Saturation (HTTP 503)**: Alert if 503 rejections exceed 5% of traffic, signaling the need for horizontal scaling.
+3. **Client-IP Rate Limiter Drops (HTTP 429)**: Monitor 429 spike alerts to detect brute-force scans or DDoS attempts.
+4. **Endpoint Latency**: Alert if the 95th percentile (p95) response latency of successful audits exceeds 2 seconds.
+5. **JVM Memory/CPU Utilization**: Trigger warning if container heap memory usage exceeds 85% or CPU exceeds 80% for > 3 minutes.
+
+### 6.2 Deployment Rollback Plan
+To recover rapidly from a faulty release:
+1. **Automated Zero-Downtime Rollback**:
+   * Render utilizes a rolling deployment strategy. During a release, the new container starts, and Render repeatedly checks the readiness probe (`/actuator/health/readiness`).
+   * If the container fails to start, crashes, or the readiness probe fails to return HTTP 200 within 5 minutes, Render aborts the deployment and routes 100% of traffic to the active, stable instances.
+2. **Manual Rollback**:
+   * If a bug escapes integration tests and is discovered post-release:
+     1. Open the **Render Dashboard** and select the service.
+     2. Click on the **Deploys** tab.
+     3. Locate the last stable deployment corresponding to the verified Git hash.
+     4. Click the options menu next to it and select **Rollback to this deploy**. This instantly routes traffic to the stable image version.
+
