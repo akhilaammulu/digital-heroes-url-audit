@@ -188,12 +188,25 @@ Used by deployment services (like Render) to track server health and schedule re
 }
 ```
 
----
+## 5. API Documentation & Swagger UI
 
-## 5. API Documentation Endpoints
+The backend utilizes **Springdoc OpenAPI** to dynamically generate OpenAPI v3 specifications and serve an interactive Swagger UI playground directly from the running application instance.
 
-Exposes Swagger visual playfields and raw documentation specifications.
+### 5.1 Configuration Dependency
+Swagger support is enabled via the following Maven dependency in `pom.xml`:
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.8.17</version>
+</dependency>
+```
 
-* **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-* **OpenAPI Schema JSON**: `http://localhost:8080/v3/api-docs`
-* **Method**: `GET`
+### 5.2 Local Development URLs
+* **Swagger UI (Interactive Playground)**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+* **Raw OpenAPI JSON Specification**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+### 5.3 Live Production URLs (Render Deployment)
+* **Swagger UI (Interactive Playground)**: [https://url-audit-backend.onrender.com/swagger-ui.html](https://url-audit-backend.onrender.com/swagger-ui.html)
+* **Raw OpenAPI JSON Specification**: [https://url-audit-backend.onrender.com/v3/api-docs](https://url-audit-backend.onrender.com/v3/api-docs)
+
