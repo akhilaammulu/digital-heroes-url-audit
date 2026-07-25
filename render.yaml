@@ -1,0 +1,22 @@
+services:
+  # Backend Spring Boot Web Service
+  - type: web
+    name: url-audit-backend
+    runtime: docker
+    rootDir: backend
+    plan: free
+
+  # Frontend Next.js Web Service
+  - type: web
+    name: url-audit-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        fromService:
+          type: web
+          name: url-audit-backend
+          property: url

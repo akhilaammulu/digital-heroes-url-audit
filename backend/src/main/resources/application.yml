@@ -3,7 +3,7 @@ spring:
     name: digital-heroes-url-audit
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:${PORT:8080}}
 
 url-audit:
   request-timeout: ${URL_AUDIT_REQUEST_TIMEOUT:10s}
