@@ -123,7 +123,37 @@ sequenceDiagram
 
 ---
 
-## 4. Package & Module Structure
+## 4. State Management & Queueing Strategy
+
+### 4.1 Where State Lives
+The URL Audit application is designed as a **stateless microservice**, meaning no persistent application state is saved to local disk storage or instance-specific databases. This makes it natively suited for container orchestration and horizontal scaling. However, the system manages three distinct types of transient in-memory state:
+
+1. **Audit Results Cache State**:
+   * **Location**: JVM Heap memory.
+   * **Mechanism**: Managed by Caffeine Cache (`LoggingCaffeineCache.java`). Key-value entries map audited URLs (String keys) to success responses.
+2. **Rate Limiting Tokens State**:
+   * **Location**: JVM Heap memory.
+   * **Mechanism**: Handled by Bucket4j buckets stored inside a Caffeine cache. Tracks remaining token balances per client IP.
+3. **Concurrency Control State**:
+   * **Location**: JVM Thread state.
+   * **Mechanism**: Backed by a standard Java `Semaphore` allocating active permit blocks to threads executing audit tasks.
+
+### 4.2 Queueing Strategy
+To handle large volumes of traffic (10,000 audits per day) and burst concurrent spikes (up to 500 requests):
+
+1. **Current Implementation (Synchronous Bounded Control)**:
+   * Rather than allocating standard system thread pools to queue requests synchronously (which causes thread starvation, high RAM footprint, and socket timeouts under heavy load), the application implements a **fast-reject concurrency filter**.
+   * When concurrent active audits exceed the configured limit (10 permits), incoming requests are immediately rejected with an `HTTP 503 Service Unavailable` response. This acts as a circuit breaker to ensure that the 10 active tasks complete with fast response times rather than degrading the entire container.
+2. **Production Scaling Strategy (Asynchronous Queueing)**:
+   * To support bursts of 500 concurrent requests without returning 503 errors to the client, the architecture would transition to an **Asynchronous Job Queue**:
+     * **Ingestion Layer**: A lightweight API Gateway receives request payloads, generates a unique `requestId`, pushes an audit job to a distributed queue (e.g. **RabbitMQ** or **AWS SQS**), and returns an `HTTP 202 Accepted` status to the client browser immediately.
+     * **Broker/Queue Layer**: The message broker queues the 500 burst requests safely, decoupling client ingestion from backend resources.
+     * **Worker Pool Layer**: A pool of decoupled worker nodes consumes jobs from the queue at a controlled consumption rate, executes the HTTP WebClient GET requests, and writes results to a shared database (e.g. Redis/PostgreSQL).
+     * **Frontend Retrieval**: The client browser utilizes WebSockets or polls a status endpoint (`GET /api/v1/audit/status/{requestId}`) to fetch the completed audit metrics.
+
+---
+
+## 5. Package & Module Structure
 
 ### Backend Package Structure (`backend/`)
 ```text
@@ -179,7 +209,7 @@ src/
 
 ---
 
-## 5. Deployment Architecture
+## 6. Deployment Architecture
 
 The application is deployed on the **Render Cloud Platform** as a unified Service Group controlled by a single Blueprint specification:
 
