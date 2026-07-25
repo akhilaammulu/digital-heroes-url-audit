@@ -19,4 +19,4 @@ services:
         fromService:
           type: web
           name: url-audit-backend
-          property: url
+          property: host

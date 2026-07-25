@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { ApiResponse, AuditResponse, AuditRequest } from '../types';
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+let apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+if (apiBaseUrl && !apiBaseUrl.startsWith('http://') && !apiBaseUrl.startsWith('https://')) {
+  apiBaseUrl = `https://${apiBaseUrl}`;
+}
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
