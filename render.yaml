@@ -16,7 +16,4 @@ services:
     plan: free
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
-        fromService:
-          type: web
-          name: url-audit-backend
-          property: host
+        value: https://url-audit-backend.onrender.com
